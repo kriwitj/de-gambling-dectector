@@ -68,22 +68,43 @@ MODEL = load_model()
 
 st.title("AI ตรวจจับรูปเว็บพนัน 🕵️‍♂️")
 
-uploaded_file = st.file_uploader("อัพโหลดรูปภาพ", type=["jpg","jpeg","png"])
+# uploaded_file = st.file_uploader("อัพโหลดรูปภาพ", type=["jpg","jpeg","png"])
 
-if uploaded_file:
-    # save temp file
-    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-        tmp.write(uploaded_file.read())
-        img_path = tmp.name
+# if uploaded_file:
+#     # save temp file
+#     with tempfile.NamedTemporaryFile(delete=False) as tmp:
+#         tmp.write(uploaded_file.read())
+#         img_path = tmp.name
 
-    st.image(img_path, caption="รูปที่อัพโหลด", use_container_width=True)
+#     st.image(img_path, caption="รูปที่อัพโหลด", use_container_width=True)
 
-    if st.button("🔍 ตรวจสอบ"):
-        # score = predict_image(img_path, MODEL)
+#     if st.button("🔍 ตรวจสอบ"):
+#         # score = predict_image(img_path, MODEL)
+#         label, confidence, img = predict_image(img_path, MODEL)  # ✅ รับ 2 ค่า
+#         # label = "⚠️ พนัน" if score > 0.5 else "✅ ไม่ใช่พนัน"
+#         st.image(img, caption=f"{label} ({confidence:.1%})", use_container_width=True)
+#         st.subheader(f"ผลลัพธ์: {label} : ({confidence})")
+#         st.metric("ความมั่นใจ (Confidence)", f"{confidence:.1%}")
+#         st.progress(confidence)
+#         # st.progress(float(confidence) if confidence > 0.5 else 1-float(confidence))
+
+# multi-file uploader
+uploaded_files = st.file_uploader(
+    "เลือกรูปภาพ", type=["jpg", "jpeg", "png"], accept_multiple_files=True
+)
+
+if uploaded_files:
+    for uploaded_file in uploaded_files:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(uploaded_file.read())
+            img_path = tmp.name
+
+        st.image(img_path, caption="รูปที่อัพโหลด", use_container_width=True)
+        
+        #predict
         label, confidence, img = predict_image(img_path, MODEL)  # ✅ รับ 2 ค่า
-        # label = "⚠️ พนัน" if score > 0.5 else "✅ ไม่ใช่พนัน"
-        st.image(img, caption=f"{label} ({confidence:.1%})", use_container_width=True)
-        st.subheader(f"ผลลัพธ์: {label} : ({confidence})")
-        st.metric("ความมั่นใจ (Confidence)", f"{confidence:.1%}")
+            # label = "⚠️ พนัน" if score > 0.5 else "✅ ไม่ใช่พนัน"
+        # st.image(img, caption=f"{label} ({confidence:.1%})", use_container_width=True)
+        st.subheader(f"ผลลัพธ์: {label} ({confidence:.1%})")
+        # st.metric("ความมั่นใจ (Confidence)", f"{confidence:.1%}")
         st.progress(confidence)
-        # st.progress(float(confidence) if confidence > 0.5 else 1-float(confidence))
