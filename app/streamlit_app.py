@@ -48,7 +48,8 @@ from src.predict import predict_image
 
 # path ไปยัง weight และ test images
 # MODEL_PATH = BASE_DIR / "weight" / "gambling_classifier_mobilenetv2_gemini_150_ep_Augment.h5"
-MODEL_PATH = BASE_DIR / "weight" / "saved_model_gambling"
+MODEL_PATH = BASE_DIR / "weight" / "gambling_classifier_mobilenetv2_gemini_150_ep_Augment.keras"
+# MODEL_PATH = BASE_DIR / "weight" / "saved_model_gambling"
 
 # ===== LOAD MODEL ONCE =====
 @st.cache_resource  # โหลดครั้งเดียว cache ไว้
