@@ -1,37 +1,3 @@
-# # app/streamlit_app.py
-# import streamlit as st
-# from src.predict import predict_image
-# import tempfile
-
-# st.title("AI ตรวจจับรูปเว็บพนัน 🕵️‍♂️")
-
-# uploaded_file = st.file_uploader("อัพโหลดรูปภาพ", type=["jpg","jpeg","png"])
-
-# if uploaded_file:
-#     # save temp file
-#     with tempfile.NamedTemporaryFile(delete=False) as tmp:
-#         tmp.write(uploaded_file.read())
-#         img_path = tmp.name
-
-#     st.image(img_path, caption="รูปที่อัพโหลด", use_column_width=True)
-
-#     if st.button("🔍 ตรวจสอบ"):
-#         score = predict_image(img_path)
-#         label = "⚠️ พนัน" if score > 0.5 else "✅ ไม่ใช่พนัน"
-#         st.subheader(f"ผลลัพธ์: {label}")
-#         st.progress(float(score) if score > 0.5 else 1-float(score))
-
-
-# import streamlit as st
-
-# st.title("AI ตรวจจับรูปเว็บพนัน 🕵️‍♂️")
-# st.write("อัพโหลดภาพเพื่อทดสอบการตรวจจับ")
-
-# uploaded_file = st.file_uploader("เลือกรูปภาพ", type=["jpg", "jpeg", "png"])
-# if uploaded_file:
-#     st.image(uploaded_file, caption="รูปที่อัพโหลด", use_column_width=True)
-#     st.success("ไฟล์ถูกอัพโหลดเรียบร้อยแล้ว!")
-
 # app/streamlit_app.py
 import sys
 from pathlib import Path
@@ -66,7 +32,10 @@ def load_model():
 MODEL = load_model()
 
 
-st.title("AI ตรวจจับรูปเว็บพนัน 🕵️‍♂️")
+st.title("DE-Gamling-Detector : AI ตรวจจับรูปเว็บพนัน 🕵️‍♂️")
+st.write("อัพโหลดภาพหลายภาพเพื่อทดสอบ และดูสรุปผลรวม")
+
+# tabs = st.tabs(["① อัพโหลด", "② ผลลัพธ์", "③ สรุป"])
 
 # uploaded_file = st.file_uploader("อัพโหลดรูปภาพ", type=["jpg","jpeg","png"])
 
@@ -93,18 +62,52 @@ uploaded_files = st.file_uploader(
     "เลือกรูปภาพ", type=["jpg", "jpeg", "png"], accept_multiple_files=True
 )
 
+results = []
+
 if uploaded_files:
-    for uploaded_file in uploaded_files:
+    st.subheader("📂 ผลลัพธ์รายภาพ")
+    # cols = st.columns(2)  # 2 คอลัมน์แสดงภาพ
+    
+    cols = st.columns(3)  # grid 3 คอลัมน์
+
+    for i, uploaded_file in enumerate(uploaded_files):
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             tmp.write(uploaded_file.read())
             img_path = tmp.name
 
-        st.image(img_path, caption="รูปที่อัพโหลด", use_container_width=True)
+        ######################### 1 #################################
+        # st.image(img_path, caption="รูปที่อัพโหลด", use_container_width=True)
         
         #predict
         label, confidence, img = predict_image(img_path, MODEL)  # ✅ รับ 2 ค่า
-            # label = "⚠️ พนัน" if score > 0.5 else "✅ ไม่ใช่พนัน"
-        # st.image(img, caption=f"{label} ({confidence:.1%})", use_container_width=True)
-        st.subheader(f"ผลลัพธ์: {label} ({confidence:.1%})")
-        # st.metric("ความมั่นใจ (Confidence)", f"{confidence:.1%}")
-        st.progress(confidence)
+        # st.subheader(f"ผลลัพธ์: {label} ({confidence:.1%})")
+        # st.progress(confidence)
+        ######################### 1 #################################
+
+        ##########################
+        # เก็บผลลัพธ์
+        results.append({"file": uploaded_file.name, "label": label, "confidence": float(confidence)})
+
+        # แสดงภาพ + ผล
+        col = cols[i % 3]
+        with col:
+            st.image(img_path, caption=uploaded_file.name, use_container_width=True)
+            st.markdown(f"**ผลลัพธ์:** {label} ({confidence:.1%})")
+            st.progress(float(confidence))
+
+    # ===== Summary Dashboard =====
+    st.markdown("---")
+    st.header("📊 Summary Dashboard")
+
+    total = len(results)
+    avg_conf = sum(r["confidence"] for r in results) / total
+    gambling_count = sum(1 for r in results if r["label"] == "⚠️ พนัน")
+    not_gambling_count = total - gambling_count
+
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("จำนวนรูป", total)
+    m2.metric("ค่าเฉลี่ยความมั่นใจ", f"{avg_conf:.1%}")
+    m3.metric("พนัน", gambling_count)
+    m4.metric("ไม่ใช่พนัน", not_gambling_count)
+
+    st.dataframe(results)
