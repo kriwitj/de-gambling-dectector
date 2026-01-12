@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
-from src.predict import predict_image
+from src.predict import predict_image_with_preview
 
 # path ไปยัง weight และ test images
 MODEL_PATH = BASE_DIR / "weight" / "gambling_classifier_mobilenetv2_gemini_150_ep_Augment.h5"
@@ -77,7 +77,7 @@ if uploaded_files:
         # st.image(img_path, caption="รูปที่อัพโหลด", use_container_width=True)
         
         #predict
-        label, confidence, img = predict_image(img_path, MODEL)  # ✅ รับ 2 ค่า
+        label, confidence, img = predict_image_with_preview(img_path, MODEL)  # ✅ รับ 2 ค่า
         # st.subheader(f"ผลลัพธ์: {label} ({confidence:.1%})")
         # st.progress(confidence)
         ######################### 1 #################################
