@@ -1,8 +1,6 @@
 
 from pathlib import Path
 import tensorflow as tf
-import numpy as np
-import matplotlib.pyplot as plt
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_PATH = BASE_DIR / "weight" / "gambling_classifier_mobilenetv2_gemini_150_ep_Augment.h5"
@@ -25,20 +23,22 @@ CLASS_NAMES = ['gambling', 'not_gambling']
 # print("Model loaded successfully.")
 
 # --- 3. CREATE A PREDICTION FUNCTION ---
-# This function prepares a single image and makes a prediction.
-def predict_image(image_path, model):
-    """Loads an image, preprocesses it, and returns the prediction."""
-    print(f"\nPredicting image: {image_path}")
-    
+def preprocess_image(image_source):
+    """Loads an image and returns the PIL image and prepared batch array."""
     img = tf.keras.utils.load_img(
-        image_path, target_size=(IMG_HEIGHT, IMG_WIDTH)
+        image_source, target_size=(IMG_HEIGHT, IMG_WIDTH)
     )
-    
     # Convert the image to a NumPy array
     img_array = tf.keras.utils.img_to_array(img)
-    
     # The model expects a "batch" of images, so we add an extra dimension
     img_array = tf.expand_dims(img_array, 0)  # Create a batch
+    return img, img_array
+
+
+# This function prepares a single image and makes a prediction.
+def predict_image(image_source, model):
+    """Loads an image, preprocesses it, and returns the prediction."""
+    img, img_array = preprocess_image(image_source)
 
     # Make the prediction
     predictions = model.predict(img_array)
