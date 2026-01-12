@@ -28,6 +28,13 @@ CLASS_NAMES = ['gambling', 'not_gambling']
 def _predict_from_image_array(img_array, model):
     # The model expects a "batch" of images, so we add an extra dimension
     img_array = tf.expand_dims(img_array, 0)  # Create a batch
+    return img, img_array
+
+
+# This function prepares a single image and makes a prediction.
+def predict_image(image_source, model):
+    """Loads an image, preprocesses it, and returns the prediction."""
+    img, img_array = preprocess_image(image_source)
 
     # Make the prediction
     predictions = model.predict(img_array)
