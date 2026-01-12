@@ -41,3 +41,8 @@ def predict_image(image_source, model):
     score = float(predictions[0][0])
     predicted_class, confidence = _interpret_score(score)
     return predicted_class, confidence, img
+
+
+def predict_image_with_preview(image_source, model):
+    """Backward-compatible wrapper for streamlit app usage."""
+    return predict_image(image_source, model)
