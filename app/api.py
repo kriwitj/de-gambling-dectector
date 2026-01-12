@@ -1,18 +1,22 @@
-from io import BytesIO
+from pathlib import Path
+import tempfile
 
+from fastapi import FastAPI, UploadFile, File, HTTPException
 import tensorflow as tf
-from fastapi import FastAPI, File, HTTPException, UploadFile
 
-from src.predict import MODEL_PATH, predict_image
+from src.predict import predict_label
 
-app = FastAPI()
+BASE_DIR = Path(__file__).resolve().parent.parent
+MODEL_PATH = BASE_DIR / "weight" / "gambling_classifier_mobilenetv2_gemini_150_ep_Augment.h5"
+
+app = FastAPI(title="DE-Gambling-Detector API")
 
 
 def load_model():
     try:
         return tf.keras.models.load_model(MODEL_PATH, compile=False)
     except Exception as exc:
-        raise RuntimeError(f"Error loading model from {MODEL_PATH}") from exc
+        raise RuntimeError(f"Error loading model: {exc}") from exc
 
 
 MODEL = load_model()
@@ -20,14 +24,16 @@ MODEL = load_model()
 
 @app.post("/predict")
 async def predict(image: UploadFile = File(...)):
-    image_bytes = await image.read()
-    if not image_bytes:
-        raise HTTPException(status_code=400, detail="Empty image upload.")
+    if not image.filename:
+        raise HTTPException(status_code=400, detail="No image uploaded")
 
-    image_stream = BytesIO(image_bytes)
+    suffix = Path(image.filename).suffix or ".jpg"
     try:
-        label, confidence, _ = predict_image(image_stream, MODEL)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(await image.read())
+            tmp_path = tmp.name
+        label, confidence = predict_label(tmp_path, MODEL)
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=f"Failed to process image: {exc}") from exc
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-    return {"label": label, "confidence": float(confidence)}
+    return {"label": label, "confidence": confidence}
